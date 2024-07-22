@@ -1,2 +1,2 @@
 # spline-planner
-GUI spline creator, primarially for FRC
+GUI spline creator, primarily for FRC
