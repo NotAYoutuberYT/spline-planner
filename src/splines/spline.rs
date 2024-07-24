@@ -1,6 +1,9 @@
 use nalgebra::Vector2;
 
-use super::{spline_segment::SplineSegment, spline_segment_factory::SplineSegmentFactory};
+use super::{
+    spline_error::SplineError, spline_segment::SplineSegment,
+    spline_segment_factory::SplineSegmentFactory,
+};
 
 /// A series of SplineSegments forming a
 /// spline in 2D space.
@@ -28,9 +31,10 @@ impl Spline {
     /// Extends the spline by taking SplineSegmentFactories,
     /// providing the previous segment to factory.build(),
     /// and appending the new SplineSegment to the spline.
-    pub fn add_segment(&mut self, factory: Box<dyn SplineSegmentFactory>) {
+    pub fn add_segment(&mut self, factory: &dyn SplineSegmentFactory) -> Result<(), SplineError> {
         let segment = factory.build(self.segments.last());
-        self.segments.push(segment);
+        self.segments.push(segment?);
+        Ok(())
     }
 
     /// Samples the spline at a specific parameterization.
@@ -38,7 +42,13 @@ impl Spline {
         let index = t as usize;
 
         let segment = self.segments.get(index);
-        segment.map_or(Vector2::default(), |segment| segment.sample(t - t.floor()))
+        segment.map_or(
+            self.segments
+                .iter()
+                .last()
+                .map_or(Vector2::default(), |segment| segment.sample(1.0)),
+            |segment| segment.sample(t - t.floor()),
+        )
     }
 
     /// Samples the spline's derivative at a specific parameterization.
@@ -47,9 +57,13 @@ impl Spline {
         let index = t as usize;
 
         let segment = self.segments.get(index);
-        segment.map_or(Vector2::default(), |segment| {
-            segment.derivative(t - t.floor())
-        })
+        segment.map_or(
+            self.segments
+                .iter()
+                .last()
+                .map_or(Vector2::default(), |segment| segment.derivative(1.0)),
+            |segment| segment.derivative(t - t.floor()),
+        )
     }
 
     /// Samples the spline's total arc length at a specific parameterization.
@@ -59,7 +73,7 @@ impl Spline {
         let mut iterator = self.segments.iter().enumerate();
 
         if t > iterator.len() as f64 {
-            return f64::default();
+            return self.total_arc_length();
         }
 
         while let Some((index, segment)) = iterator.next() {
@@ -92,7 +106,7 @@ impl Spline {
         let mut total_length: f64 = 0.0;
         let mut iterator = self.segments.iter().enumerate();
 
-        if arc_length > self.total_arc_length() as f64 {
+        if arc_length >= self.total_arc_length() as f64 {
             return self.segments.len() as f64;
         }
 

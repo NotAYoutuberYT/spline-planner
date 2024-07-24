@@ -1,4 +1,4 @@
-use super::spline_segment::SplineSegment;
+use super::{spline_error::SplineError, spline_segment::SplineSegment};
 
 /// Used in the construction of SplineSegments and
 /// Splines. Takes in some information, and is able to build
@@ -6,5 +6,8 @@ use super::spline_segment::SplineSegment;
 /// for more information.
 pub trait SplineSegmentFactory {
     /// Builds a new SplineSegment, given a previous segment.
-    fn build(&self, previous_segment: Option<&Box<dyn SplineSegment>>) -> Box<dyn SplineSegment>;
+    fn build(
+        &self,
+        previous_segment: Option<&Box<dyn SplineSegment>>,
+    ) -> Result<Box<dyn SplineSegment>, SplineError>;
 }
