@@ -4,3 +4,4 @@ pub mod spline;
 pub mod spline_error;
 pub mod spline_segment;
 pub mod spline_segment_factory;
+mod unit_tests;

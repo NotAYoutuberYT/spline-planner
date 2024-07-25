@@ -42,7 +42,7 @@ impl SplineSegmentFactory for C2HermiteSegmentFactory {
             None => Err(SplineError::new(
                 &format!(
                     "{} requires a previous segment for building",
-                    any::type_name::<C2HermiteSegmentFactory>()
+                    any::type_name::<Self>()
                 ),
                 &SplineErrorType::InvalidPreviousSegment,
             )),
